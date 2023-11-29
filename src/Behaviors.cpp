@@ -5,9 +5,14 @@
 
 //sensors
 Romi32U4ButtonA buttonA;
+Romi32U4ButtonB buttonB;
+
 
 //motor-speed controller
 SpeedController robot;
+
+//camera
+OpenMV camera;
 
 void Behaviors::Init(void)
 {
@@ -35,13 +40,27 @@ void Behaviors::Run(void)
         break;
     
     case DRIVE:
-        robot_state = DRIVE;
-        //assignment
-        //robot.Straight(25,10); //velocity, duration
-        //robot.Turn(180,0); //degrees, direction
-        robot.Curved(45,75,30); //velocity left, velocity right, duration
-        //robot.Stop(); 
-        robot_state = IDLE;
+        if (buttonB.getSingleDebouncedRelease()) {
+            robot_state = IDLE;
+            break;
+        }
+        // Use SpeedController::Run once efforts have been determined
+        // The target distance fr April tags is W = 45, H = 45
+        
+        // Maybe use area as a target?
+        uint8_t tagCount = camera.getTagCount();
+        if(tagCount) 
+        {
+            AprilTagDatum tag;
+            if(camera.readTag(tag))
+            {
+                float errorW = TARGET_W - tag.w;
+                float u_left = Kp* errorW;
+                Serial.println(u_left);
+
+                robot.Run(u_left, u_left);
+            }
+        }
         break;
     }
 }
