@@ -9,10 +9,10 @@ class Behaviors{
     private:
         enum ROBOT_STATE {IDLE, DRIVE};
         ROBOT_STATE robot_state = IDLE; //initial state: IDLE
-        unsigned int TARGET_W, TARGET_H = 45;
-        const float Kp = 0.005;
-        const float Kp2 = 0.005;
-         
+        int TARGET_W =45, TARGET_H = 45;
+        const float Kp1 = 10;
+        const float Kp2 = 4;
+
     public:
         void Init(void); /// a and b
         void Stop(void);
