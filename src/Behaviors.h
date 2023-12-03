@@ -10,8 +10,10 @@ class Behaviors{
         enum ROBOT_STATE {IDLE, DRIVE};
         ROBOT_STATE robot_state = IDLE; //initial state: IDLE
         int TARGET_W =45, TARGET_H = 45;
-        const float Kp1 = 10;
+        float prevError = 0;
+        const float Kp1 = 20;
         const float Kp2 = 4;
+        const float Kd = .7;
 
     public:
         void Init(void); /// a and b

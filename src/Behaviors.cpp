@@ -52,24 +52,27 @@ void Behaviors::Run(void)
         static int missed = 0;
         if(tagCount){
             AprilTagDatum tag;
-            missed =0;
+            missed = 0;
             if(camera.readTag(tag)){
                 //Serial.println("sees Tag");
                 float errorW = TARGET_W - (int)tag.w;
                 float errorX = 80-(int)tag.cx;
 
-                float u_distance= Kp1*errorW;
-                float u_angle = Kp2* errorX;
+                float u_distance = Kp1 * errorW + Kd * (errorW - prevError);
+                float u_angle = Kp2 * errorX;
+
                 //Serial.println(errorX);
 
                 //Serial.println(u_distance);
                 //Serial.println(u_angle);
 
                 robot.Run(u_distance-u_angle, u_distance+u_angle);
+                prevError = errorW;
             }
         }else{
             missed++;
-            if(missed>60){
+            if(missed>80){
+                prevError = 0;
                 //Serial.println("missed tagret");
                 robot.Run(0,0);
             }
