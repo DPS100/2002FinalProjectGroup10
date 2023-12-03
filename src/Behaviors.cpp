@@ -26,8 +26,8 @@ void Behaviors::Stop(void)
 
 void Behaviors::Run(void)
 {
-    switch (robot_state)
-    {
+    robot_state = DRIVE;
+    switch (robot_state){
     case IDLE:
         if(buttonA.getSingleDebouncedRelease()){ 
             robot_state = DRIVE; 
@@ -38,7 +38,7 @@ void Behaviors::Run(void)
             robot.Stop(); 
         }   
         break;
-    
+
     case DRIVE:
         if (buttonB.getSingleDebouncedRelease()) {
             robot_state = IDLE;
@@ -46,20 +46,34 @@ void Behaviors::Run(void)
         }
         // Use SpeedController::Run once efforts have been determined
         // The target distance fr April tags is W = 45, H = 45
-        
+
         // Maybe use area as a target?
         uint8_t tagCount = camera.getTagCount();
-        if(tagCount) 
-        {
+        static int missed = 0;
+        if(tagCount){
             AprilTagDatum tag;
-            if(camera.readTag(tag))
-            {
-                float errorW = TARGET_W - tag.w;
-                float u_left = Kp* errorW;
-                Serial.println(u_left);
+            missed =0;
+            if(camera.readTag(tag)){
+                //Serial.println("sees Tag");
+                float errorW = TARGET_W - (int)tag.w;
+                float errorX = 80-(int)tag.cx;
 
-                robot.Run(u_left, u_left);
+                float u_distance= Kp1*errorW;
+                float u_angle = Kp2* errorX;
+                //Serial.println(errorX);
+
+                //Serial.println(u_distance);
+                //Serial.println(u_angle);
+
+                robot.Run(u_distance-u_angle, u_distance+u_angle);
             }
+        }else{
+            missed++;
+            if(missed>60){
+                //Serial.println("missed tagret");
+                robot.Run(0,0);
+            }
+
         }
         break;
     }
