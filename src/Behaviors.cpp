@@ -52,13 +52,20 @@ void Behaviors::Run(void)
         if(tagCount) 
         {
             AprilTagDatum tag;
-            if(camera.readTag(tag))
-            {
+            if(camera.readTag(tag) ) {
+                Serial.println("Sees Tag");
                 float errorW = TARGET_W - tag.w;
-                float u_left = Kp* errorW;
-                Serial.println(u_left);
+                float errorX = 160 - tag.cx;
+                float u_distance = Kp* errorW;
+                float u_angle = Kp2 * errorX;
 
-                robot.Run(u_left, u_left);
+                robot.Run(u_distance-u_angle, u_distance+ u_angle);
+
+
+                
+            }
+            else{
+                //LED blink 10 Hz
             }
         }
         break;
