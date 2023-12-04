@@ -61,7 +61,7 @@ clock = time.clock()
 while(True):
     clock.tick()
     img = sensor.snapshot()
-    tags = img.find_apriltags(families=image.TAG36H11) # default TAG16H5 family
+    tags = img.find_apriltags(families=image.TAG25H9) # default TAG16H5 family
 
     # Transmit Tags #
 

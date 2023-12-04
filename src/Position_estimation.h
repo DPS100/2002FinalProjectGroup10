@@ -10,7 +10,7 @@ class Position{
         float deltaT;
         
         unsigned long time_prev, time_now = 0;
-        const float l = 200;//142.875; //assignment (mm)
+        const float l = 142.875;//142.875; //assignment (mm)
         
     public:
         struct pose_data {

@@ -40,44 +40,47 @@ void Behaviors::Run(void)
         break;
 
     case DRIVE:
-        if (buttonB.getSingleDebouncedRelease()) {
-            robot_state = IDLE;
-            break;
-        }
-        // Use SpeedController::Run once efforts have been determined
-        // The target distance fr April tags is W = 45, H = 45
+        robot.Curved(150, 180, 30);
+        robot.Curved(180, 150, 30);
+        break;
+        // if (buttonB.getSingleDebouncedRelease()) {
+        //     robot_state = IDLE;
+        //     break;
+        // }
+        // // Use SpeedController::Run once efforts have been determined
+        // // The target distance fr April tags is W = 45, H = 45
 
-        // Maybe use area as a target?
-        uint8_t tagCount = camera.getTagCount();
-        static int missed = 0;
-        if(tagCount){
-            AprilTagDatum tag;
-            missed = 0;
-            if(camera.readTag(tag)){
-                //Serial.println("sees Tag");
-                float errorW = TARGET_W - (int)tag.w;
-                float errorX = 80-(int)tag.cx;
+        // // Maybe use area as a target?
+        // uint8_t tagCount = camera.getTagCount();
+        // static int missed = 0;
+        // if(tagCount){
+        //     AprilTagDatum tag;
+        //     missed = 0;
+        //     if(camera.readTag(tag)){
+        //         //Serial.println("sees Tag");
+        //         float errorW = TARGET_W - (int)tag.w;
+        //         float errorX = 80-(int)tag.cx;
 
-                float u_distance = Kp1 * errorW + Kd * (errorW - prevError);
-                float u_angle = Kp2 * errorX;
+        //         float u_distance = Kp1 * errorW + Kd * (errorW - prevError);
+        //         float u_angle = Kp2 * errorX;
 
-                //Serial.println(errorX);
+        //         //Serial.println(errorX);
 
-                //Serial.println(u_distance);
-                //Serial.println(u_angle);
+        //         //Serial.println(u_distance);
+        //         //Serial.println(u_angle);
 
-                robot.Run(u_distance-u_angle, u_distance+u_angle);
-                prevError = errorW;
-            }
-        }else{
-            missed++;
-            if(missed>80){
-                prevError = 0;
-                //Serial.println("missed tagret");
-                robot.Run(0,0);
-            }
+        //         robot.Run(u_distance-u_angle, u_distance+u_angle);
+        //         prevError = errorW;
+        //     }
+        // }else{
+        //     missed++;
+        //     if(missed>80){
+        //         prevError = 0;
+        //         //Serial.println("missed tagret");
+        //         robot.Run(0,0);
+        //     }
 
-        }
+        // }
         break;
     }
 }
