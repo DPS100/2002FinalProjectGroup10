@@ -19,7 +19,7 @@
 class IRDecoder
 {
 private:
-  uint8_t pin = -1;
+  uint8_t pin = 18;
 
   enum IR_STATE
   {
