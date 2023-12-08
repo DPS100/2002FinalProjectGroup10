@@ -1,9 +1,12 @@
 #include <Arduino.h>
 #include <openmv.h>
+#include <string.h>
 #include "Behaviors.h"
+#include "IR_sensor.h"
 
 // behavior class
 Behaviors positionEstimation;
+IRsensor irSensor;
 // OpenMV camera;
 
 // uint8_t FindAprilTags();
@@ -37,8 +40,6 @@ bool checkSerial1(void)
 }
 
 void setup() {
-  // positionEstimation.Init();
-
   // Lab 5 - Vision
 
   // Serial.begin(115200);
@@ -61,6 +62,8 @@ void setup() {
   digitalWrite(0, HIGH); // Set internal pullup on RX1 to avoid spurious signals
 
   Serial.println("/setup()");
+
+  irSensor.Init();
 }
 
 void loop() {
@@ -81,6 +84,8 @@ void loop() {
     {
         lastSend = currTime;
         sendMessage("timer/time", String(currTime));
+        String distance = String(irSensor.ReadData());
+        sendMessage("irSensor/distance", distance);
     }
 
     // Check to see if we've received anything
