@@ -50,7 +50,6 @@ void Behaviors::Run(void)
         // // Use SpeedController::Run once efforts have been determined
         // // The target distance fr April tags is W = 45, H = 45
 
-<<<<<<< HEAD
         // Maybe use area as a target?
         uint8_t tagCount = camera.getTagCount();
         static int missed = 0;
@@ -61,18 +60,6 @@ void Behaviors::Run(void)
                 //Serial.println("sees Tag");
                 float errorW = TARGET_W - (int)tag.w;
                 float errorX = 80-(int)tag.cx;
-=======
-        // // Maybe use area as a target?
-        // uint8_t tagCount = camera.getTagCount();
-        // static int missed = 0;
-        // if(tagCount){
-        //     AprilTagDatum tag;
-        //     missed = 0;
-        //     if(camera.readTag(tag)){
-        //         //Serial.println("sees Tag");
-        //         float errorW = TARGET_W - (int)tag.w;
-        //         float errorX = 80-(int)tag.cx;
->>>>>>> c3220033a2a4669d21d450a73edf253bc60d26a2
 
         //         float u_distance = Kp1 * errorW + Kd * (errorW - prevError);
         //         float u_angle = Kp2 * errorX;
