@@ -9,7 +9,7 @@ class Behaviors{
     private:
         enum ROBOT_STATE {IDLE, DRIVE};
         ROBOT_STATE robot_state = IDLE; //initial state: IDLE
-        int TARGET_W =45, TARGET_H = 45;
+        int TARGET_W =30, TARGET_H = 45;
         float prevError = 0;
         const float Kp1 = 20;
         const float Kp2 = 4;

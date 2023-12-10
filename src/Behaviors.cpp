@@ -53,7 +53,7 @@ void Behaviors::Run(void)
         if(tagCount){
             AprilTagDatum tag;
             missed = 0;
-            if(camera.readTag(tag)){
+            if(camera.readTag(tag) && tag.id == 2){
                 //Serial.println("sees Tag");
                 float errorW = TARGET_W - (int)tag.w;
                 float errorX = 80-(int)tag.cx;
