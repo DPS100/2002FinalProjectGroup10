@@ -67,6 +67,7 @@ void setup() {
 
   irSensor.Init();
   sonar.Init();
+  positionEstimation.Init();
 }
 
 void loop() {
@@ -76,7 +77,7 @@ void loop() {
   // TODO - Make PID (probably just P loop) for distance to tag (Target is w,h == 45)
   // TODO - Make PID (probably just P) for angling to tag
 
-  // positionEstimation.Run();
+   positionEstimation.Run();
   // delay(1); //calm things down for a sec...
   // // FindAprilTags();
 
