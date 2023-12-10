@@ -3,10 +3,12 @@
 #include <string.h>
 #include "Behaviors.h"
 #include "IR_sensor.h"
+#include "Sonar_sensor.h"
 
 // behavior class
 Behaviors positionEstimation;
 IRsensor irSensor;
+SonarSensor sonar;
 // OpenMV camera;
 
 // uint8_t FindAprilTags();
@@ -64,6 +66,7 @@ void setup() {
   Serial.println("/setup()");
 
   irSensor.Init();
+  sonar.Init();
 }
 
 void loop() {
@@ -80,12 +83,12 @@ void loop() {
   // Lab 6
       static uint32_t lastSend = 0;
     uint32_t currTime = millis();
-    if(currTime - lastSend >= 5000) //send every five seconds
+    if(currTime - lastSend >= 500) //send every five seconds
     {
         lastSend = currTime;
         sendMessage("timer/time", String(currTime));
-        String distance = String(irSensor.ReadData());
-        sendMessage("irSensor/distance", distance);
+        sendMessage("irSensor/distance", String(irSensor.ReadData()));
+        sendMessage("sonarSensor/distance", String(sonar.ReadData()));
     }
 
     // Check to see if we've received anything
