@@ -6,6 +6,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 
+# Global variables
 client = mqtt.Client("team10client")
 msgCount = 0
 globX = 0
@@ -18,67 +19,70 @@ globY3 = 0
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code", rc)
 
+# Callback for subscribed topocs
 def on_message(client, userdata, msg):
-    # print(msg.topic, msg.payload)
+    # EYE IN THE SKY CODE
     if(msg.topic == "theIlluminati/tag0/x"):
-        # print(msg.payload)
         byte_string = msg.payload
         numeric_value = float(byte_string.decode('utf-8'))
         global globX
         globX = numeric_value
     elif(msg.topic == "theIlluminati/tag0/y"):
-        # print(msg.payload)
         byte_string = msg.payload
         numeric_value = float(byte_string.decode('utf-8'))
         global globY
         globY = numeric_value
     elif(msg.topic == "theIlluminati/tag1/x"):
-        # print(msg.payload)
         byte_string = msg.payload
         numeric_value = float(byte_string.decode('utf-8'))
         global globX2
         globX2 = numeric_value
     elif(msg.topic == "theIlluminati/tag1/y"):
-        # print(msg.payload)
         byte_string = msg.payload
         numeric_value = float(byte_string.decode('utf-8'))
         global globY2
         globY2 = numeric_value
     elif(msg.topic == "theIlluminati/tag2/x"):
-        # print(msg.payload)
         byte_string = msg.payload
         numeric_value = float(byte_string.decode('utf-8'))
         global globX3
         globX3 = numeric_value
     elif(msg.topic == "theIlluminati/tag2/y"):
-        # print(msg.payload)
         byte_string = msg.payload
         numeric_value = float(byte_string.decode('utf-8'))
         global globY3
         globY3 = numeric_value
-    # else:
-    endStr = "\t"
-    print(msg.payload, end=endStr)
-    global msgCount
-    msgCount = msgCount + 1
-    if(msgCount == 2):
-        print("\n")
-        msgCount = 0
+    else:
+        # SENSOR DATA
+        # Keep sensor data on same line
+        endStr = "\t"
+        byte_string = msg.payload
+        numeric_value = float(byte_string.decode('utf-8'))
+        print(numeric_value, end=endStr)
+        global msgCount
+        msgCount = msgCount + 1
+        if(msgCount == 3):
+            print("\n")
+            msgCount = 0
 
 
 def init():
+    # Setup callbacks
     client.on_connect = on_connect
     client.on_message = on_message
+    # Connect to MQTT server
     client.username_pw_set(username="team10", password="langeland0824")
     print("Connecting...")
     client.connect("robomqtt.cs.wpi.edu")   
 
 init()
 
+# Subscribe to needed topics
 # SIGN OFF FOR SENSOR DATA
-# client.subscribe("team10/irSensor/distance")
-# client.subscribe("team10/sonarSensor/distance")
-# client.subscribe("team10/z/acceleration")
+client.subscribe("team10/irSensor/distance")
+client.subscribe("team10/sonarSensor/distance")
+client.subscribe("team10/z/acceleration")
+# SIGN OFF FOR PLOTTING APRIL TAGS
 client.subscribe("theIlluminati/tag0/x")
 client.subscribe("theIlluminati/tag0/y")
 client.subscribe("theIlluminati/tag1/x")
@@ -86,19 +90,15 @@ client.subscribe("theIlluminati/tag1/y")
 client.subscribe("theIlluminati/tag2/x")
 client.subscribe("theIlluminati/tag2/y")
 
+# Keep track of the three points
 def update(frame, points):
-    # Your logic to update the points' positions based on time/frame
-    # For example, let's move the points in circles for demonstration
-    new_x1 = globX  # Adjust this based on your specific logic for point 1
-    new_y1 = globY  # Adjust this based on your specific logic for point 1
+    new_x1 = globX 
+    new_y1 = globY 
+    new_x2 = globX2
+    new_y2 = globY2
+    new_x3 = globX3
+    new_y3 = globY3
 
-    new_x2 = globX2  # Adjust this based on your specific logic for point 2
-    new_y2 = globY2     # Adjust this based on your specific logic for point 2
-
-    new_x3 = globX3     # Adjust this based on your specific logic for point 3
-    new_y3 = globY3 # Adjust this based on your specific logic for point 3
-
-    # Update the scatter plots or markers for each point
     points[0].set_data(new_x1, new_y1)
     points[1].set_data(new_x2, new_y2)
     points[2].set_data(new_x3, new_y3)
@@ -113,8 +113,8 @@ def animate_points():
     ax.set_ylim(-10, 170)  # Set your own y-axis limits
 
     # Initial positions for each point
-    initial_x = [0, 0, 0]
-    initial_y = [0, 0, 0]
+    initial_x = [-10, -10, -10]
+    initial_y = [-10, -10, -10]
 
     # Create scatter plots for each point
     point1, = ax.plot(initial_x[0], initial_y[0], 'bo')
@@ -127,9 +127,10 @@ def animate_points():
     # Create the animation with an endless loop
     animation = FuncAnimation(fig, update, fargs=(points,), frames=iter(range(100)), interval=50)
 
+    plt.grid()
     plt.show()
 
 client.loop_start()
 while(True):
-    # client.loop()
     animate_points()
+    client.loop()
