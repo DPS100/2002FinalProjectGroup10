@@ -26,6 +26,20 @@ void Behaviors::Stop(void)
 
 
 void Behaviors::Run2(void) {
+    // Look around for april tags until bumps into wall
+    uint8_t tagCount = camera.getTagCount();
+    //static int missed = 0;
+    if(tagCount){
+        AprilTagDatum tag;
+        //missed = 0;
+        if(camera.readTag(tag) && tag.id == 4){
+            
+            //record tag location
+            //center camera on tag?
+            robot_state = PAYLOAD;
+            robot.Stop();
+        }
+    }
     switch (robot_state){
     case IDLE:
         if(buttonA.getSingleDebouncedRelease()){ 
@@ -39,27 +53,14 @@ void Behaviors::Run2(void) {
         break;
     
     case WANDER:
-        // Look around for april tags until bumps into wall
-        uint8_t tagCount = camera.getTagCount();
-        //static int missed = 0;
-        if(tagCount){
-            AprilTagDatum tag;
-            //missed = 0;
-            if(camera.readTag(tag) && tag.id == 4){
-                //record tag location
-                //center camera on tag?
-                robot_state = PAYLOAD;
-                robot.Stop();
-            }
-        }
-        // if (collisoncode here){
+        if (false){
 
-        //     robot_state = BUMP;
-        //     robot.Stop();
-        // }
+            robot_state = BUMP;
+            robot.Stop();
+        }
         else{
             //straight forward for now
-            robot.Straight(50,5); //speed, time
+            robot.Run(50,50); //speed, time
             robot_state = WANDER;
         }
         break;
