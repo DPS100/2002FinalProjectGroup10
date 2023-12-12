@@ -27,7 +27,6 @@ void SpeedController::Run(float target_velocity_left, float target_velocity_righ
 
         motors.setEfforts(u_left,u_right);
         odometry.UpdateIdealPose(target_velocity_left,target_velocity_right,MagneticEncoder.ReadVelocityLeft(), MagneticEncoder.ReadVelocityRight()); //this is where your newly programmed function is/will be called
-        //odometry.PrintPose();
     }
 }
 

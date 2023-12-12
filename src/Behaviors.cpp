@@ -7,7 +7,6 @@
 Romi32U4ButtonA buttonA;
 Romi32U4ButtonB buttonB;
 
-
 //motor-speed controller
 SpeedController robot;
 
@@ -66,8 +65,8 @@ void Behaviors::Run2(void) {
 
     case BUMP:
         // record there is a wall there 
-        //visual map stuff here
-        //move back and turn
+        // visual map stuff here
+        // move back and turn
         robot.Straight(-30,5); //speed, time
         robot.Turn(90,1); // degree, direction
         robot_state = WANDER;

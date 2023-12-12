@@ -18,7 +18,7 @@ SonarSensor sonar;
  *      topic:message
  * which is what the corresponding ESP32 code expects.
  * */
-void sendMessage(const String& topic, const String& message)
+static void sendMessage(const String& topic, const String& message)
 {
     Serial1.println(topic + String(':') + message);
     Serial.println(topic + String(':') + message);
@@ -82,7 +82,7 @@ void loop() {
   // // FindAprilTags();
 
   // Lab 6
-      static uint32_t lastSend = 0;
+    static uint32_t lastSend = 0;
     uint32_t currTime = millis();
     if(currTime - lastSend >= 500) //send every five seconds
     {
