@@ -41,7 +41,7 @@ void Behaviors::Run2(void) {
     case WANDER:
         // Look around for april tags until bumps into wall
         uint8_t tagCount = camera.getTagCount();
-        static int missed = 0;
+        //static int missed = 0;
         if(tagCount){
             AprilTagDatum tag;
             //missed = 0;
