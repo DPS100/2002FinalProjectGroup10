@@ -1,28 +1,88 @@
 #include <Romi32U4.h>
 #include "Behaviors.h"
-#include "Speed_controller.h"
-#include "Position_estimation.h"
 
 //sensors
+IRsensor irSensor;
+SonarSensor sonar;
+OpenMV camera;
+
+//buttons
 Romi32U4ButtonA buttonA;
 Romi32U4ButtonB buttonB;
 
 //motor-speed controller
 SpeedController robot;
 
-//camera
-OpenMV camera;
+//used for mqtt checkSerial1
+String serString1; 
 
-void Behaviors::Init(void)
-{
+void Behaviors::Init(void){
+    //sensors
     robot.Init();
+    irSensor.Init();
+    sonar.Init();
+
+    //mqtt
+    Serial1.begin(115200);
+    digitalWrite(0, HIGH); // Set internal pullup on RX1 to avoid spurious signals
+    Serial.println("/setup()");
 }
 
-void Behaviors::Stop(void)
-{
+void Behaviors::Stop(void){
     robot.Stop();
 }
+/*
+ * sendMessage creates a string of the form
+ *      topic:message
+ * which is what the corresponding ESP32 code expects.
+ */
+void sendMessage(const String& topic, const String& message){
+    Serial1.println(topic + String(':') + message);
+    Serial.println(topic + String(':') + message);
+}
 
+bool checkSerial1(void){
+    while(Serial1.available())
+    {
+        char c = Serial1.read(); //reads one char at a time
+        serString1 += c; //adds char until it reaches \n
+
+        if(c == '\n')
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+void Behaviors::updateMQTT(void){
+    static uint32_t lastSend = 0; //time
+    uint32_t currTime = millis();  
+    if(currTime - lastSend >= 500) //send every five seconds 
+    {
+        lastSend = currTime; //updates time
+        sendMessage("timer/time", String(currTime)); //print time to mqtt
+        sendMessage("irSensor/distance", String(irSensor.ReadData())); //print ir data to mqtt
+        sendMessage("sonarSensor/distance", String(sonar.ReadData())); //print sonar data to mqtt
+    }
+
+    // Check to see if we've received anything
+    if(checkSerial1())
+    {
+        Serial.print("Rec'd:\t");
+        Serial.print(serString1);
+        serString1 = "";
+    }
+
+    // Defaults to just sending one message, but increase the message count
+    // if you want to test how fast you can send
+    static int msgCountToSend = 0;
+
+    while(msgCountToSend)
+    {
+        sendMessage("button/time", String(currTime + msgCountToSend--));
+    }
+}
 
 void Behaviors::Run2(void) {
     // Look around for april tags until bumps into wall
@@ -97,7 +157,6 @@ void Behaviors::Run2(void) {
 //             robot.Stop(); 
 //         }   
 //         break;
-
 //     case DRIVE:
 //         robot.Curved(150, 180, 30);
 //         robot.Curved(180, 150, 30);
@@ -108,7 +167,6 @@ void Behaviors::Run2(void) {
 //         // }
 //         // // Use SpeedController::Run once efforts have been determined
 //         // // The target distance fr April tags is W = 45, H = 45
-
 //         // Maybe use area as a target?
 //         uint8_t tagCount = camera.getTagCount();
 //         static int missed = 0;
@@ -123,12 +181,9 @@ void Behaviors::Run2(void) {
 //         }
 //         //         float u_distance = Kp1 * errorW + Kd * (errorW - prevError);
 //         //         float u_angle = Kp2 * errorX;
-
 //         //         //Serial.println(errorX);
-
 //         //         //Serial.println(u_distance);
 //         //         //Serial.println(u_angle);
-
 //         //         robot.Run(u_distance-u_angle, u_distance+u_angle);
 //         //         prevError = errorW;
 //         //     }
@@ -139,7 +194,6 @@ void Behaviors::Run2(void) {
 //         //         //Serial.println("missed tagret");
 //         //         robot.Run(0,0);
 //         //     }
-
 //         // }
 //         break;
 //     }
