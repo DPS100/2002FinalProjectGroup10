@@ -2,7 +2,6 @@
 #include "Behaviors.h"
 #include "Speed_controller.h"
 #include "Position_estimation.h"
-#include "main.cpp"
 
 //sensors
 IRsensor irSensor;
@@ -61,12 +60,12 @@ bool checkSerial1(void){
 void Behaviors::updateMQTT(void){
     static uint32_t lastSend = 0; //time
     uint32_t currTime = millis();  
-    if(currTime - lastSend >= 500) //send every five seconds 
+    if(currTime - lastSend >= 500) //send every 500 ms
     {
         lastSend = currTime; //updates time
         sendMessage("timer/time", String(currTime)); //print time to mqtt
-        sendMessage("irSensor/distance", String(irSensor.ReadData())); //print ir data to mqtt
-        sendMessage("sonarSensor/distance", String(sonar.ReadData())); //print sonar data to mqtt
+        sendMessage("ir/distance", String(irSensor.ReadData())); //print ir data to mqtt
+        sendMessage("sonar/distance", String(sonar.ReadData())); //print sonar data to mqtt
     }
 
     // Check to see if we've received anything
