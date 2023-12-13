@@ -75,3 +75,7 @@ void SpeedController::Stop()
     motors.setEfforts(0,0);
     odometry.Stop();
 }
+void SpeedController::setEfforts(float l, float r){
+    motors.setEfforts(l,r);
+    odometry.UpdateIdealPose(l,r,MagneticEncoder.ReadVelocityLeft(),MagneticEncoder.ReadVelocityRight());
+}

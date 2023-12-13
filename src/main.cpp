@@ -20,16 +20,17 @@ void setup() {
   // Serial.println(F("Welcome."));
   // behavoir.Init();
 
-  Serial.begin(115200);
-  delay(10000);  //give it a moment to bring up the Serial
+  Serial.begin(1000);
+  delay(1000);  //give it a moment to bring up the Serial
   Serial.println("setup()"); 
 
   behavior.Init();
 }
 
 void loop() {
-    behavior.Run2();
+    // behavior.Run2();
     behavior.updateMQTT();
+    behavior.test();
 }
 
 // uint8_t FindAprilTags()

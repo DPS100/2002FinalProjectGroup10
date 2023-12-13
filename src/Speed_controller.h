@@ -22,6 +22,7 @@ class SpeedController{
         boolean Straight(int, int); //speed, duration
         boolean Curved(int,int,int); //speed left, speed right, duration
         void Stop(void);
+        void setEfforts(float, float);
 };
 
 #endif
