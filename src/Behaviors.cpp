@@ -2,7 +2,6 @@
 #include "Behaviors.h"
 #include "Speed_controller.h"
 #include "Position_estimation.h"
-#include "main.cpp"
 
 //sensors
 IRsensor irSensor;
@@ -95,7 +94,7 @@ void Behaviors::Run2(void) {
         AprilTagDatum tag;
         missed = 0;
         if(camera.readTag(tag) && tag.id == 4){
-            if(tag.w< TARGET_W){
+            if(tag.w < TARGET_W){
                 float errorW = TARGET_W - (int)tag.w;
                 float errorX = 80-(int)tag.cx;
             
