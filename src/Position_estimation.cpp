@@ -30,6 +30,10 @@ Position::pose_data Position::ReadPose(void)
     // TODO maybe use true pos
     return {x,y,theta};
 }
+// void Position::TargetPose(targetx, targety,targettheta)
+// {
+
+// }
 
 void Position::PrintPose(void)
 {
