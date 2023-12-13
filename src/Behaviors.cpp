@@ -94,7 +94,7 @@ void Behaviors::Run2(void) {
         AprilTagDatum tag;
         missed = 0;
         if(camera.readTag(tag) && tag.id == 4){
-            if(tag.w< TARGET_W){
+            if(tag.w < TARGET_W){
                 float errorW = TARGET_W - (int)tag.w;
                 float errorX = 80-(int)tag.cx;
             
@@ -105,7 +105,7 @@ void Behaviors::Run2(void) {
                 prevError = errorW;
                 }
             }
-            else if(tag.w>= TARGET_W){
+            else if(tag.w >= TARGET_W){
                 sendMessage("AprilTag", String("Found AprilTag"));
                 robot_state = PAYLOAD;
                 robot.Stop();
@@ -130,18 +130,18 @@ void Behaviors::Run2(void) {
         break;
     
     case WANDER:
-        // else{
-        //     //straight forward for now
-        //     robot.Run(50,50); //speed, time
-        //     robot_state = WANDER;
-        // }
+        if (sonar.ReadData() < 5){
+            sendMessage("Sonar", String("Wall Here"));
+            robot_state = BUMP;
+            robot.Stop();
+        }
+        else{
+            robot.Run(50,50); //speed, time
+            robot_state = WANDER;
+        }
         break;
 
     case BUMP:
-        // record there is a wall there 
-        // visual map stuff here
-        // move back and turn
-        robot.Straight(-30,5); //speed, time
         robot.Turn(90,1); // degree, direction
         robot_state = WANDER;
         robot.Stop();
