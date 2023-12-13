@@ -64,7 +64,7 @@ bool checkSerial1(void){
 void Behaviors::updateMQTT(void){
     static uint32_t lastSend = 0; //time
     uint32_t currTime = millis();  
-    if(currTime - lastSend >= 500) //send every five seconds 
+    if(currTime - lastSend >= 500) //send every 500 ms
     {
         lastSend = currTime; //updates time
         sendMessage("timer/time", String(currTime)); //print time to mqtt
@@ -134,18 +134,18 @@ void Behaviors::Run2(void) {
         break;
     
     case WANDER:
-        // else{
-        //     //straight forward for now
-        //     robot.Run(50,50); //speed, time
-        //     robot_state = WANDER;
-        // }
+        if (sonar.ReadData() < 5){
+            sendMessage("Sonar", String("Wall Here"));
+            robot_state = BUMP;
+            robot.Stop();
+        }
+        else{
+            robot.Run(50,50); //speed, time
+            robot_state = WANDER;
+        }
         break;
 
     case BUMP:
-        // record there is a wall there 
-        // visual map stuff here
-        // move back and turn
-        robot.Straight(-30,5); //speed, time
         robot.Turn(90,1); // degree, direction
         robot_state = WANDER;
         robot.Stop();
