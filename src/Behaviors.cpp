@@ -106,7 +106,7 @@ void Behaviors::Run2(void) {
                 prevError = errorW;
                 }
             }
-            else if(tag.w>= TARGET_W){
+            else if(tag.w >= TARGET_W){
                 sendMessage("AprilTag", String("Found AprilTag"));
                 robot_state = PAYLOAD;
                 robot.Stop();
