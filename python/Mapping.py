@@ -162,6 +162,7 @@ init()
 client.loop_start()
 start_time = time.time()
 
+gridsize = 42 # TODO known - remove to run init code
 while (gridsize is None):
     # Check the elapsed time
     elapsed_time = time.time() - start_time
