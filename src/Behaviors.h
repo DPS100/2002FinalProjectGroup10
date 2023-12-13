@@ -27,6 +27,7 @@ class Behaviors{
         void Run(void);
         void Run2(void);
         void updateMQTT(void); //updating mqtt
+        void test(void);
 };
 
 #endif
