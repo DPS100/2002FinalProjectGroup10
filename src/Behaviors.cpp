@@ -14,6 +14,7 @@ Romi32U4ButtonB buttonB;
 
 //motor-speed controller
 SpeedController robot;
+Position position;
 
 Position pp;
 
@@ -152,9 +153,8 @@ void Behaviors::Run2(void) {
         break;
 
     case PAYLOAD:
-        //find fastest way back
-        // needs the visual map
-        robot_state = IDLE;
+        //if(position.ReadPose() != )
+        robot_state = PAYLOAD;
         robot.Stop();
         break;
     }

@@ -29,6 +29,10 @@ Position::pose_data Position::ReadPose(void)
 {
     return {trueX,trueY,trueTheta};
 }
+// void Position::TargetPose(targetx, targety,targettheta)
+// {
+
+// }
 
 void Position::PrintPose(void)
 {
