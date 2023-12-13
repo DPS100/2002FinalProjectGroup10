@@ -2,15 +2,16 @@ import numpy as np
 from datetime import datetime
 
 class CoordinateRecorder:
-    def __init__(self, max_array_size, dimensions):
+    def __init__(self, max_array_size, dimensions, success_callback):
         # TODO: Keep track of maximum/minumim values
         self.x_coordinate = None
         self.y_coordinate = None
         self.last_update_time = None
-        self.coordinates_array = np.empty((max_array_size, dimensions + 1), dtype=float)
+        self.coordinates_array = np.zeros((max_array_size, dimensions + 1), dtype=float)
         self.index = 0
         self.max_array_size = max_array_size
         self.dimensions = dimensions
+        self.success_callback = success_callback
 
     def update_x_coordinate(self, x):
         self.x_coordinate = x
@@ -33,9 +34,11 @@ class CoordinateRecorder:
         # Try update
         if coord is not None:
             # Circular indexing keeps most recent coordinate first
-            self.coordinates_array[self.index % self.max_array_size, :] = coord
             self.index = self.index + 1
+            self.coordinates_array[self.index % self.max_array_size, :] = coord
             self.reset_coordinates()
+            if self.success_callback:
+                self.success_callback(coord)
 
     def reset_coordinates(self):
         self.x_coordinate = None
