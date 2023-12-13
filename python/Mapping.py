@@ -1,12 +1,12 @@
 # Group 10 Final Project plotting script
 
 # Imports
-from time import sleep
 import paho.mqtt.client as mqtt
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib as mpl
 import math
+import time
 from matplotlib.animation import FuncAnimation
 from matplotlib.ticker import MultipleLocator
 from coordinate_recorder import CoordinateRecorder
@@ -28,6 +28,8 @@ def wall_found(position):
     # Decrement cell score (More likely a wall), bounded
     x = int(position[0]/gridsize)
     y = int(position[1]/gridsize)
+    if x >= cells or y >= cells:
+        return
     value = maze[x,y] - 1
     maze[x,y] = max(-maxCellScore, min(value, maxCellScore))
 
@@ -35,6 +37,8 @@ def clear_space(position):
     # Increment cell score (More likely empty space), bounded
     x = int(position[0]/gridsize)
     y = int(position[1]/gridsize)
+    if x >= cells or y >= cells:
+        return
     value = maze[x,y] + 1
     maze[x,y] = max(-maxCellScore, min(value, maxCellScore))
 
@@ -74,7 +78,9 @@ def on_message(client, userdata, msg):
             wall_position.update_y_coordinate(new_pos[1])
         case "team10/info/width":
             global gridsize
-            gridsize = payload_to_number(msg.payload)
+            gridsize = payload_to_number(msg.payload) / 2
+            print("Wall dist is")
+            print(gridsize * 2)
 
 def calculate_pos_from_offset(x_position, y_position, heading, distance):
     new_x = x_position + distance * math.cos(heading)
@@ -154,11 +160,15 @@ init()
 
 # Run forever
 client.loop_start()
+start_time = time.time()
 
-gridsize = 1 # TODO wait until gridsize is set to start animation
-while(gridsize is None):
-    sleep(5)
-    print("Waiting for Romi to complete startup sequence...")
+while (gridsize is None):
+    # Check the elapsed time
+    elapsed_time = time.time() - start_time
+    # Break the loop if the timer duration has passed
+    if elapsed_time >= 5:
+        start_time = time.time()
+        print("Waiting for Romi to complete startup sequence...")
 
 # TODO test values
 # acc = 0
@@ -193,5 +203,4 @@ while(True):
     # if math.isclose(acc, 40/100, rel_tol=1e-5):
     #     dropoff_location = np.array([3.5, 2.5])
 
-    client.loop()
     plt.pause(0.05)
