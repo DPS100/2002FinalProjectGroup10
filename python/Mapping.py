@@ -1,4 +1,4 @@
-# Group 10 Sensor Readout / Eye in the Sky python script
+# Group 10 Final Project plotting script
 
 # Imports
 from time import sleep
@@ -6,17 +6,18 @@ import paho.mqtt.client as mqtt
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib as mpl
+import math
 from matplotlib.animation import FuncAnimation
 from coordinate_recorder import CoordinateRecorder
 
 # Global variables
 client = mqtt.Client("team10client")
 msgCount = 0
-max_array_size = 1000
+max_array_size = 10
 robot_position = CoordinateRecorder(max_array_size, 2)
 robot_rotation = CoordinateRecorder(max_array_size, 1)
 wall_position = CoordinateRecorder(max_array_size, 2)
-tag_position = CoordinateRecorder(max_array_size, 2)
+tag_position = CoordinateRecorder(2, 2)
 
 # Parse MQTT message into float
 def payload_to_number(msg):
@@ -33,16 +34,29 @@ def on_message(client, userdata, msg):
             robot_position.update_x_coordinate(payload_to_number(msg.payload))
         case "team10/position/y":
             robot_position.update_y_coordinate(payload_to_number(msg.payload))
+        case "team10/tag/x":
+            tag_position.update_x_coordinate(payload_to_number(msg.payload))
+        case "team10/tag/y":
+            tag_position.update_y_coordinate(payload_to_number(msg.payload))
         case "team10/position/theta":
             robot_rotation.update_x_coordinate(payload_to_number(msg.payload))
         case "team10/ir/distance":
-            # position_set = calculate_pos_from_offset(robot_position.most_recent())
-            # wall_position.upda
-            print("In progress")
+            pos = robot_position.most_recent()
+            rot = robot_rotation.most_recent()
+            new_pos = calculate_pos_from_offset(pos[0], pos[1], rot[0], payload_to_number(msg.payload))
+            wall_position.update_x_coordinate(new_pos[0])
+            wall_position.update_y_coordinate(new_pos[1])
+        case "team10/ultrasonic/distance":
+            pos = robot_position.most_recent()
+            rot = robot_rotation.most_recent()
+            new_pos = calculate_pos_from_offset(pos[0], pos[1], rot[0], payload_to_number(msg.payload))
+            wall_position.update_x_coordinate(new_pos[0])
+            wall_position.update_y_coordinate(new_pos[1])
 
 def calculate_pos_from_offset(x_position, y_position, heading, distance):
-    # TODO fix math
-    return {x_position, y_position}
+    new_x = x_position + distance * math.cos(heading)
+    new_y = y_position + distance * math.sin(heading)
+    return [new_x, new_y]
 
 def init():
     # Setup callbacks
@@ -55,69 +69,73 @@ def init():
     client.connect("robomqtt.cs.wpi.edu")   
 
     # Subscribe to needed topics
-    # SENSOR READOUT
-    client.subscribe("team10/irSensor/distance")
-    client.subscribe("team10/sonarSensor/distance")
-    client.subscribe("team10/z/acceleration")
-    # EYE IN THE SKY
-    # client.subscribe("theIlluminati/tag0/x")
-    # client.subscribe("theIlluminati/tag0/y")
-    # client.subscribe("theIlluminati/tag1/x")
-    # client.subscribe("theIlluminati/tag1/y")
-    # client.subscribe("theIlluminati/tag2/x")
-    # client.subscribe("theIlluminati/tag2/y")
-    # Final Project
-    client.subscribe("team10/camera/apriltagx")
-    client.subscribe("team10/camera/apriltagy")
+    client.subscribe("team10/position/x")
+    client.subscribe("team10/position/y")
+    client.subscribe("team10/position/theta")
+    client.subscribe("team10/ir/distance")
+    client.subscribe("team10/ultrasonic/distance")
+    client.subscribe("team10/tag/x")
+    client.subscribe("team10/tag/y")
 
-# Keep track of the three tags
-def update(frame, points):
-    # new_x1 = globX 
-    # new_y1 = globY 
-    # new_x2 = globX2
-    # new_y2 = globY2
-    # new_x3 = globX3
-    # new_y3 = globY3
+# Keep track of the plotted points
+def update(frame, robot, robotFront,  walls, tags):
+    # Generate some random data for demonstration purposes
+    num_points = 10
 
-    new_tagx = globtagx
-    new_tagy = globtagy
+    heading = robot_rotation.most_recent()[0]
+    dist = 2
+    robo_x = robot_position.most_recent()[0]
+    robo_y = robot_position.most_recent()[1]
+    robo_front_xy = calculate_pos_from_offset(robo_x, robo_y, heading, dist)
 
-    # points[0].set_data(new_x1, new_y1)
-    # points[1].set_data(new_x2, new_y2)
-    # points[2].set_data(new_x3, new_y3)
-
-    points[3].set_data(new_tagx,new_tagy)
-
-    return points
+    # Update the positions of all points
+    # TODO: Use coordinate recorders
+    robot.set_xdata(robo_x)
+    robot.set_ydata(robo_y)
+    robotFront.set_xdata(robo_front_xy[0])
+    robotFront.set_ydata(robo_front_xy[1])
+    walls.set_xdata(np.random.rand(num_points))
+    walls.set_ydata(np.random.rand(num_points))
+    tags.set_xdata(np.random.rand(2))
+    tags.set_ydata(np.random.rand(2))
 
 # Function to create and display the window
 def animate_points():
     # Set up the plot
+    plt.ion()
     fig, ax = plt.subplots()
-    ax.set_xlim(-10, 130)
-    ax.set_ylim(-10, 170)
-    initial_x = [-10, -10, -10]
-    initial_y = [-10, -10, -10]
+    ax.set_xlim(0, 100)
+    ax.set_ylim(0, 100)
 
-    # point1, = ax.plot(initial_x[0], initial_y[0], 'bo')
-    # point2, = ax.plot(initial_x[1], initial_y[1], 'go')
-    # point3, = ax.plot(initial_x[2], initial_y[2], 'ro')
-    # points = [point1, point2, point3]
+    # Generate initial random data
+    initial_x = np.random.rand(10)
+    initial_y = np.random.rand(10)
 
-    point4 = ax.plot(initial_x[3],initial_y[3],"bo")
-    points = [point4]
+    robot, = ax.plot(initial_x, initial_y, 'go', markersize=10)
+    robotFront, = ax.plot(initial_x, initial_y, 'go', markersize=5)
+    walls, = ax.plot(initial_x, initial_y, 'ro', markersize=3)
+    tags, = ax.plot(initial_x, initial_y, 'bo', markersize=10)
 
     # Create the window with an endless loop
-    animation = FuncAnimation(fig, update, fargs=(points,), frames=iter(range(10)), interval=50)
-
+    animation = FuncAnimation(fig, update, fargs=(robot, robotFront, walls, tags))
+    
     plt.grid()
     plt.show()
 
+    return animation
+
 # Initialize MQTT connection
-init()
+# init()
 
 # Run forever
-client.loop_start()
+# client.loop_start()
+acc = 0
+animation = animate_points()
 while(True):
-    animate_points()
-    client.loop()
+    acc = acc + 1
+    robot_position.update_x_coordinate(acc % 100)
+    robot_position.update_y_coordinate(acc * 3 % 100)
+    robot_rotation.update_x_coordinate(acc / 5)
+    # print(acc)
+    plt.pause(0.1)
+    # client.loop()

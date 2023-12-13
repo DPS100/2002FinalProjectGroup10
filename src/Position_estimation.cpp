@@ -27,6 +27,7 @@ void Position::Stop(void)
 
 Position::pose_data Position::ReadPose(void)
 {
+    // TODO maybe use true pos
     return {x,y,theta};
 }
 
