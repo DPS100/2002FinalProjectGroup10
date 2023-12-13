@@ -15,6 +15,8 @@ Romi32U4ButtonB buttonB;
 //motor-speed controller
 SpeedController robot;
 
+Position pp;
+
 //used for mqtt checkSerial1
 String serString1;
 
@@ -23,7 +25,9 @@ void Behaviors::Init(void){
     robot.Init();
     irSensor.Init();
     sonar.Init();
-
+    
+    //speeed controls
+    pp.Init();
     //mqtt
     Serial1.begin(115200);
     digitalWrite(0, HIGH); // Set internal pullup on RX1 to avoid spurious signals
@@ -64,8 +68,8 @@ void Behaviors::updateMQTT(void){
     {
         lastSend = currTime; //updates time
         sendMessage("timer/time", String(currTime)); //print time to mqtt
-        sendMessage("irSensor/distance", String(irSensor.ReadData())); //print ir data to mqtt
-        sendMessage("sonarSensor/distance", String(sonar.ReadData())); //print sonar data to mqtt
+        sendMessage("ir/distance", String(irSensor.ReadData())); //print ir data to mqtt
+        sendMessage("sonar/distance", String(sonar.ReadData())); //print sonar data to mqtt
     }
 
     // Check to see if we've received anything
@@ -153,5 +157,40 @@ void Behaviors::Run2(void) {
         robot_state = IDLE;
         robot.Stop();
         break;
+    }
+}
+
+void Behaviors::test(void){
+    if(buttonA.getSingleDebouncedRelease()){ 
+        Serial.println("button pressed");
+        
+        float angle = pp.ReadPose().THETA;
+        float shortestDistOne = 99999;
+        float shortestDistTwo = 99999;
+
+        unsigned long now = millis();
+
+        while((unsigned long)(millis() - now) <= 3*1000){  //3sec
+            robot.setEfforts(50,-50);
+
+            if(sonar.ReadData() < shortestDistOne){
+                shortestDistOne = sonar.ReadData();
+                Serial.println(shortestDistOne);
+            }
+        }
+        robot.setEfforts(0,0);
+
+        now = millis();
+        while((unsigned long)(millis() - now) <= 3*1000){  //3sec
+            robot.setEfforts(40,-40);
+            
+            if(sonar.ReadData() < shortestDistTwo){
+                shortestDistTwo = sonar.ReadData();
+                Serial.println(shortestDistTwo);
+            }
+        }
+        robot.setEfforts(0,0);
+        Serial.print(shortestDistOne+shortestDistTwo+19);
+        sendMessage("info/width",String(shortestDistOne+shortestDistTwo+19));
     }
 }
