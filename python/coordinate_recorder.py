@@ -23,6 +23,14 @@ class CoordinateRecorder:
         self.last_update_time = datetime.now().timestamp()
         self.try_append_coordinates()
 
+    def update_x_coordinate_weighted(self, x, weight):
+        self.update_x_coordinate(x)
+        self.weight = weight
+
+    def update_y_coordinate_weighted(self, y, weight):
+        self.update_y_coordinate(y)
+        self.weight = weight
+
     def try_append_coordinates(self):
         # Only updates array once both values have been filled
         coord = None
@@ -37,8 +45,8 @@ class CoordinateRecorder:
             self.index = self.index + 1
             self.coordinates_array[self.index % self.max_array_size, :] = coord
             self.reset_coordinates()
-            if self.success_callback:
-                self.success_callback(coord)
+            if self.success_callback is not None:
+                self.success_callback(coord, self.weight)
 
     def reset_coordinates(self):
         self.x_coordinate = None

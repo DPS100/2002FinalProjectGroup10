@@ -82,14 +82,9 @@ void Behaviors::updateMQTT(void){
 
         // sendMessage("sonar/distance", String(sonar.ReadData())); //print sonar data to mqtt
         Position::pose_data pose = robot.readPose();
-        float sonarDist = sonar.ReadData() + 9.0f;
         float irDist = irSensor.ReadData() + 10.0f;
-        float wallX = xPosFromOffset(robot.readPose().X / 10.0f, pose.THETA, sonarDist);
-        float wallY = yPosFromOffset(robot.readPose().Y / 10.0f, pose.THETA, sonarDist);
         float wall2X = xPosFromOffset(robot.readPose().X / 10.0f, pose.THETA - PI/4, irDist);
         float wall2Y = yPosFromOffset(robot.readPose().Y / 10.0f, pose.THETA - PI/4, irDist);
-        sendMessage("wall/x", String(wallX)); //print sonar data to mqtt
-        sendMessage("wall/y", String(wallY)); //print sonar data to mqtt
         sendMessage("wall2/x", String(wall2X)); //print sonar data to mqtt
         sendMessage("wall2/y", String(wall2Y)); //print sonar data to mqtt
         sendMessage("position/x", String(pose.X / 10.0f)); //print sonar data to mqtt
@@ -135,13 +130,11 @@ void Behaviors::findTags(void){
 }
 
 void Behaviors::Run2(void) {
-// Look around for april tags until bumps into wall
-    robot_state = SEEK;
+    // Look around for april tags until bumps into wall
+    delay(1);
+    findTags();
     switch (robot_state){
     case SEEK:
-        delay(1);
-        findTags();
-
     case IDLE:
         if(buttonA.getSingleDebouncedRelease()){ 
             robot_state = WANDER; 
@@ -154,18 +147,23 @@ void Behaviors::Run2(void) {
         break;
     
     case WANDER:
-        if (sonar.ReadData() < 15.0f - 8.0f){
+        if (sonar.ReadData() < 9.0f){
+            float sonarDist = sonar.ReadData() + 9.0f;
+            float wallX = xPosFromOffset(robot.readPose().X / 10.0f, robot.readPose().THETA, sonarDist);
+            float wallY = yPosFromOffset(robot.readPose().Y / 10.0f, robot.readPose().THETA, sonarDist);
+            sendMessage("wall/x", String(wallX)); //print sonar data to mqtt
+            sendMessage("wall/y", String(wallY)); //print sonar data to mqtt
             robot_state = BUMP;
             robot.Stop();
         }
         else{ 
             // Away should be weak, towards should be strong
-            float err = 19 - irSensor.ReadData();
+            float err = 18 - irSensor.ReadData();
             float effort = 0;
             if(err < -10) {
                 robot.Stop();
                 delay(500);
-                robot.Straight(50, 5.6);
+                robot.Straight(50, 7);
                 robot.Stop();
                 delay(500);
                 robot.Turn(90, 0); // degree, direction
@@ -173,6 +171,8 @@ void Behaviors::Run2(void) {
                 delay(500);
             } else {
                 effort = 1.5 * err;
+                if(effort > 4.0f) effort = 4.0f;
+                if(effort < -4.0f) effort = -4.0f;
             }
             robot.Run(50, 50, -effort, effort); //speed, time
             robot_state = WANDER;

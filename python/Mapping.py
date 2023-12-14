@@ -18,34 +18,24 @@ max_array_size = 1000
 pickup_location = None
 dropoff_location = None
 gridsize = None
-cells = 11
+cells = 21
 ir_angle_offset = -math.pi/4
 maze = np.zeros((cells, cells))
 maxCellScore = 100
 
 # Predefined callback functions
-def wall_found(position):
-    # Decrement cell score (More likely a wall), bounded
+def score(position, weight):
     x = int(position[0]/gridsize)
     y = int(position[1]/gridsize)
-    if x >= cells or y >= cells or x <= 0 or y <= 0:
+    if x >= cells or y >= cells or x < 0 or y < 0:
         return
-    value = maze[x,y] - 1
-    maze[x,y] = max(-maxCellScore, min(value, maxCellScore))
-
-def clear_space(position):
-    # Increment cell score (More likely empty space), bounded
-    x = int(position[0]/gridsize)
-    y = int(position[1]/gridsize)
-    if x >= cells or y >= cells or x <= 0 or y <= 0:
-        return
-    value = maze[x,y] + 1
+    value = maze[x,y] + weight
     maze[x,y] = max(-maxCellScore, min(value, maxCellScore))
 
 # Global variables depending on callbacks
-robot_position = CoordinateRecorder(max_array_size, 2, clear_space)
+robot_position = CoordinateRecorder(max_array_size, 2, score)
 robot_rotation = CoordinateRecorder(1, 1, None) # TODO does this need to be a recorder? 
-wall_position = CoordinateRecorder(max_array_size, 2, wall_found)
+wall_position = CoordinateRecorder(max_array_size, 2, score)
 
 # Parse MQTT message into float
 def payload_to_number(msg):
@@ -60,19 +50,19 @@ def on_connect(client, userdata, flags, rc):
 def on_message(client, userdata, msg):
     match msg.topic:
         case "team10/position/x":
-            robot_position.update_x_coordinate(payload_to_number(msg.payload))
+            robot_position.update_x_coordinate_weighted(payload_to_number(msg.payload), 1)
         case "team10/position/y":
-            robot_position.update_y_coordinate(payload_to_number(msg.payload))
+            robot_position.update_y_coordinate_weighted(payload_to_number(msg.payload), 1)
         case "team10/position/theta":
             robot_rotation.update_x_coordinate(payload_to_number(msg.payload))
         case "team10/wall/x":
-            wall_position.update_x_coordinate(payload_to_number(msg.payload))
+            wall_position.update_x_coordinate_weighted(payload_to_number(msg.payload), -50)
         case "team10/wall/y":
-            wall_position.update_y_coordinate(payload_to_number(msg.payload))
+            wall_position.update_y_coordinate_weighted(payload_to_number(msg.payload), -50)
         case "team10/wall2/x":
-            wall_position.update_x_coordinate(payload_to_number(msg.payload))
+            wall_position.update_x_coordinate_weighted(payload_to_number(msg.payload), -1)
         case "team10/wall2/y":
-            wall_position.update_y_coordinate(payload_to_number(msg.payload))
+            wall_position.update_y_coordinate_weighted(payload_to_number(msg.payload), -1)
         case "team10/ir/distance":
             pos = robot_position.most_recent()
             rot = robot_rotation.most_recent()
@@ -110,8 +100,8 @@ def init():
     client.subscribe("team10/position/x")
     client.subscribe("team10/position/y")
     client.subscribe("team10/position/theta")
-    # client.subscribe("team10/wall/x")
-    # client.subscribe("team10/wall/y")
+    client.subscribe("team10/wall/x")
+    client.subscribe("team10/wall/y")
     client.subscribe("team10/wall2/x")
     client.subscribe("team10/wall2/y")
     # client.subscribe("team10/ir/distance")
@@ -178,7 +168,7 @@ init()
 client.loop_start()
 start_time = time.time()
 
-gridsize = 42/2 # TODO known - remove to run init code
+gridsize = 42/4 # TODO known - remove to run init code
 while (gridsize is None):
     # Check the elapsed time
     elapsed_time = time.time() - start_time
