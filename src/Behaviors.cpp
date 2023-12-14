@@ -34,7 +34,10 @@ void Behaviors::Init(void){
     robot.Init();
     irSensor.Init();
     sonar.Init();
-    
+    //camera
+    Wire.begin();
+    Wire.setClock(100000ul);
+
     //mqtt
     Serial1.begin(115200);
     digitalWrite(0, HIGH); // Set internal pullup on RX1 to avoid spurious signals
@@ -71,7 +74,7 @@ float yPosFromOffset(float y_pos, float heading, float dist) {
 void Behaviors::updateMQTT(void){
     static uint32_t lastSend = 0; //time
     uint32_t currTime = millis();  
-    if(currTime - lastSend >= 500) //send every 500 ms
+    if(currTime - lastSend >= 250) //send every 500 ms
     {
         lastSend = currTime; //updates time
         // sendMessage("timer/time", String(currTime)); //print time to mqtt
@@ -93,57 +96,52 @@ void Behaviors::updateMQTT(void){
         sendMessage("position/y", String(pose.Y / 10.0f)); //print sonar data to mqtt
         sendMessage("position/theta", String(pose.THETA)); //print sonar data to mqtt
     }
+}
 
-    // Check to see if we've received anything
-    if(checkSerial1())
-    {
-        // Serial.print("Rec'd:\t");
-        // Serial.print(serString1);
-        serString1 = "";
+void Behaviors::findTags(void){
+    uint8_t tagCount = camera.getTagCount();
+    // static int missed = 0;
+    if(tagCount){
+        AprilTagDatum tag1;
+        //missed = 0;
+        if(camera.readTag(tag1)){
+            sendMessage("AprilTag", String(tag1.id));
+            if(tag1.w < TARGET_W){
+                sendMessage("Romi X",String(robot.readPose().X));
+                sendMessage("Romi Y",String(robot.readPose().Y));
+                sendMessage("Romi Theta",String(robot.readPose().THETA));
+                // float errorW = TARGET_W - (int)tag1.w;
+                // float errorX = 80-(int)tag1.cx;
+            
+    //             // float u_distance = Kp1 * errorW + Kd * (errorW - prevError);
+    //             // float u_angle = Kp2 * errorX;
+
+                // robot.Run(u_distance-u_angle, u_distance+u_angle);
+                // prevError = errorW;
+            }
+        }
+        // } else if(tag1.w >= TARGET_W){
+        //     robot_state = PAYLOAD;
+        //     robot.Stop();
+        // }
     }
-
-    // Defaults to just sending one message, but increase the message count
-    // if you want to test how fast you can send
-    static int msgCountToSend = 0;
-
-    while(msgCountToSend)
-    {
-        sendMessage("button/time", String(currTime + msgCountToSend--));
-    }
+    // } else {
+    //     missed++;
+    //     if(missed>80){
+    //         prevError = 0;
+    //         robot.Run(0,0);
+    //     }
+    // }
 }
 
 void Behaviors::Run2(void) {
 // Look around for april tags until bumps into wall
-    // uint8_t tagCount = camera.getTagCount();
-    // static int missed = 0;
-    // if(tagCount){
-    //     AprilTagDatum tag;
-    //     missed = 0;
-    //     if(camera.readTag(tag) && tag.id == 4){
-    //         if(tag.w < TARGET_W){
-    //             float errorW = TARGET_W - (int)tag.w;
-    //             float errorX = 80-(int)tag.cx;
-            
-    //             float u_distance = Kp1 * errorW + Kd * (errorW - prevError);
-    //             float u_angle = Kp2 * errorX;
-
-    //             robot.Run(u_distance-u_angle, u_distance+u_angle);
-    //             prevError = errorW;
-    //             }
-    //         }
-    //         else if(tag.w >= TARGET_W){
-    //             sendMessage("AprilTag", String("Found AprilTag"));
-    //             robot_state = PAYLOAD;
-    //             robot.Stop();
-    //         }
-    //     }else{
-    //         missed++;
-    //         if(missed>80){
-    //             prevError = 0;
-    //             robot.Run(0,0);
-    //     }
-    // }
+    robot_state = SEEK;
     switch (robot_state){
+    case SEEK:
+        delay(1);
+        findTags();
+
     case IDLE:
         if(buttonA.getSingleDebouncedRelease()){ 
             robot_state = WANDER; 
@@ -195,39 +193,5 @@ void Behaviors::Run2(void) {
         robot_state = PAYLOAD;
         robot.Stop();
         break;
-    }
-}
-
-void Behaviors::test(void){
-    if(buttonA.getSingleDebouncedRelease()){ 
-        Serial.println("button pressed");
-        
-        float shortestDistOne = 99999;
-        float shortestDistTwo = 99999;
-
-        unsigned long now = millis();
-
-        while((unsigned long)(millis() - now) <= 3*1000){  //3sec
-            robot.setEfforts(50,-50);
-
-            if(sonar.ReadData() < shortestDistOne){
-                shortestDistOne = sonar.ReadData();
-                Serial.println(shortestDistOne);
-            }
-        }
-        robot.setEfforts(0,0);
-
-        now = millis();
-        while((unsigned long)(millis() - now) <= 3*1000){  //3sec
-            robot.setEfforts(40,-40);
-            
-            if(sonar.ReadData() < shortestDistTwo){
-                shortestDistTwo = sonar.ReadData();
-                Serial.println(shortestDistTwo);
-            }
-        }
-        robot.setEfforts(0,0);
-        Serial.print(shortestDistOne+shortestDistTwo+19);
-        sendMessage("info/width",String(shortestDistOne+shortestDistTwo+19));
     }
 }
