@@ -13,7 +13,7 @@
 
 class Behaviors{
     private:
-        enum ROBOT_STATE {IDLE, WANDER, BUMP, PAYLOAD};
+        enum ROBOT_STATE {IDLE, WANDER, BUMP, PAYLOAD,SEEK};
         ROBOT_STATE robot_state = IDLE; //initial state: IDLE
         int TARGET_W =70, TARGET_H = 45;
         float prevError = 0;
@@ -28,6 +28,7 @@ class Behaviors{
         void Run2(void);
         void updateMQTT(void); //updating mqtt
         void test(void);
+        void findTags(void); //reads april tags
 };
 
 #endif
