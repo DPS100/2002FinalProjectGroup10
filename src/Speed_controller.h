@@ -19,9 +19,10 @@ class SpeedController{
 
     public:
         void Init(void);
-        void Run(float, float); //speed left, speed right
+        void Run(float, float); //speed left, speed right 
+        void Run(float, float, float, float); //speed left, speed right , steer left, steer right
         boolean Turn(int,int); //degrees, direction of rotation: 0->left, 1->right
-        boolean Straight(int, int); //speed, duration
+        boolean Straight(int, float); //speed, duration
         boolean Curved(int,int,int); //speed left, speed right, duration
         void Stop(void);
         void setEfforts(float, float);

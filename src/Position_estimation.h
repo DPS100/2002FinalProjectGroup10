@@ -22,6 +22,7 @@ class Position{
         pose_data ReadPose(void);
         void PrintPose(void);
         void Stop(void);
+        void SetPose(pose_data);
 };
 
 #endif

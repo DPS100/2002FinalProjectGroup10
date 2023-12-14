@@ -71,7 +71,7 @@ float yPosFromOffset(float y_pos, float heading, float dist) {
 void Behaviors::updateMQTT(void){
     static uint32_t lastSend = 0; //time
     uint32_t currTime = millis();  
-    if(currTime - lastSend >= 250) //send every 500 ms
+    if(currTime - lastSend >= 500) //send every 500 ms
     {
         lastSend = currTime; //updates time
         // sendMessage("timer/time", String(currTime)); //print time to mqtt
@@ -156,12 +156,27 @@ void Behaviors::Run2(void) {
         break;
     
     case WANDER:
-        if (sonar.ReadData() < 7.5f){
+        if (sonar.ReadData() < 15.0f - 8.0f){
             robot_state = BUMP;
             robot.Stop();
         }
-        else{
-            robot.Run(50,50); //speed, time
+        else{ 
+            // Away should be weak, towards should be strong
+            float err = 19 - irSensor.ReadData();
+            float effort = 0;
+            if(err < -10) {
+                robot.Stop();
+                delay(500);
+                robot.Straight(50, 5.6);
+                robot.Stop();
+                delay(500);
+                robot.Turn(90, 0); // degree, direction
+                robot.Stop();
+                delay(500);
+            } else {
+                effort = 1.5 * err;
+            }
+            robot.Run(50, 50, -effort, effort); //speed, time
             robot_state = WANDER;
         }
         break;

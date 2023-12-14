@@ -61,3 +61,9 @@ void Position::UpdateIdealPose(float speed_left, float speed_right)
     time_prev = time_now; //updating time
 }
 
+void Position::SetPose(pose_data pose) {
+    x = pose.X;
+    y = pose.Y;
+    theta = pose.THETA;
+}
+
