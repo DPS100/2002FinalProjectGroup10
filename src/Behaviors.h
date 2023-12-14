@@ -26,7 +26,7 @@ class Behaviors{
         void Stop(void);
         void Run(void);
         void Run2(void);
-        void updateMQTT(void); //updating mqtt
+        static void updateMQTT(void); //updating mqtt
         void test(void);
         void findTags(void); //reads april tags
 };

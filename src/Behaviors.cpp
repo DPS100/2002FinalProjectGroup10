@@ -1,4 +1,5 @@
 #include <Romi32U4.h>
+#include <math.h>
 #include "Behaviors.h"
 #include "Speed_controller.h"
 #include "Position_estimation.h"
@@ -15,10 +16,18 @@ Romi32U4ButtonB buttonB;
 //motor-speed controller
 SpeedController robot;
 
-Position pos;
-
 //used for mqtt checkSerial1
 String serString1;
+
+/*
+ * sendMessage creates a string of the form
+ *      topic:message
+ * which is what the corresponding ESP32 code expects.
+ */
+void sendMessage(const String& topic, const String& message){
+    Serial1.println(topic + String(':') + message);
+    // Serial.println(topic + String(':') + message);
+}
 
 void Behaviors::Init(void){
     //sensors
@@ -36,19 +45,11 @@ void Behaviors::Init(void){
     Serial1.begin(115200);
     digitalWrite(0, HIGH); // Set internal pullup on RX1 to avoid spurious signals
     Serial.println("/setup()");
+    sendMessage("reset", "reset");
 }
 
 void Behaviors::Stop(void){
     robot.Stop();
-}
-/*
- * sendMessage creates a string of the form
- *      topic:message
- * which is what the corresponding ESP32 code expects.
- */
-void sendMessage(const String& topic, const String& message){
-    Serial1.println(topic + String(':') + message);
-    Serial.println(topic + String(':') + message);
 }
 
 bool checkSerial1(void){
@@ -63,6 +64,14 @@ bool checkSerial1(void){
         }
     }
     return false;
+}
+
+float xPosFromOffset(float x_pos, float heading, float dist) {
+    return x_pos + dist * cos(heading);
+}
+
+float yPosFromOffset(float y_pos, float heading, float dist) {
+    return y_pos + dist * sin(heading);
 }
 
 void Behaviors::findTags(void){
@@ -80,8 +89,8 @@ void Behaviors::findTags(void){
                 // float errorW = TARGET_W - (int)tag1.w;
                 // float errorX = 80-(int)tag1.cx;
             
-                // float u_distance = Kp1 * errorW + Kd * (errorW - prevError);
-                // float u_angle = Kp2 * errorX;
+    //             // float u_distance = Kp1 * errorW + Kd * (errorW - prevError);
+    //             // float u_angle = Kp2 * errorX;
 
                 // robot.Run(u_distance-u_angle, u_distance+u_angle);
                 // prevError = errorW;
@@ -121,8 +130,7 @@ void Behaviors::Run2(void) {
         break;
     
     case WANDER:
-        if (sonar.ReadData() < 5){
-            sendMessage("Sonar", String("Wall Here"));
+        if (sonar.ReadData() < 7.5f){
             robot_state = BUMP;
             robot.Stop();
         }
@@ -133,16 +141,17 @@ void Behaviors::Run2(void) {
         break;
 
     case BUMP:
+        robot.Stop();
+        delay(500);
         robot.Turn(90,1); // degree, direction
         robot_state = WANDER;
         robot.Stop();
+        delay(500);
         break;
 
     case PAYLOAD:
-        //find fastest way back
-        // needs the visual map
-        Serial.println("Sucess?");
-        //robot_state = IDLE;
+        //if(position.ReadPose() != )
+        robot_state = PAYLOAD;
         robot.Stop();
         break;
     }
@@ -152,10 +161,10 @@ void Behaviors::test(void){
     if(buttonA.getSingleDebouncedRelease()){ 
         Serial.println("button pressed");
         
-        float shortestDistOne = 9999999;
-        float shortestDistTwo = 9999999;
-        unsigned long now1 = millis();
-        float curr;
+        float shortestDistOne = 99999;
+        float shortestDistTwo = 99999;
+
+        unsigned long now = millis();
 
         while((unsigned long)(millis() - now1) <= 3.5/2*1000){ //90 degrees
             robot.setEfforts(50,-50);

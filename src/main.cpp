@@ -29,8 +29,8 @@ void setup() {
 
 void loop() {
     behavior.Run2();
-    //behavior.updateMQTT();
-    //behavior.test();
+    behavior.updateMQTT();
+    // behavior.test();
 }
 
 // uint8_t FindAprilTags()
