@@ -2,11 +2,13 @@
 #define SPEED_CONTROLLER
 
 #include <Romi32U4.h>
+#include "Position_estimation.h"
 
 class SpeedController{
     private:
+        const float ff = 0.7;
         const float Kp = 0.5; //Adapt the parameters until your robot moves at the speed you command it to drive
-        const float Ki = 0.1; // Use 0.5 and 0.1 for reverse/turning
+        const float Ki = 0.02; // Use 0.5 and 0.1 for reverse/turning
         float E_left = 0; 
         float E_right = 0;
         int counts = 1440; //assignment 1: convert degrees into counts
@@ -23,6 +25,7 @@ class SpeedController{
         boolean Curved(int,int,int); //speed left, speed right, duration
         void Stop(void);
         void setEfforts(float, float);
+        Position::pose_data readPose(void);
 };
 
 #endif

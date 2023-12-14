@@ -18,7 +18,7 @@ max_array_size = 1000
 pickup_location = None
 dropoff_location = None
 gridsize = None
-cells = 6
+cells = 11
 ir_angle_offset = -math.pi/4
 maze = np.zeros((cells, cells))
 maxCellScore = 100
@@ -28,7 +28,7 @@ def wall_found(position):
     # Decrement cell score (More likely a wall), bounded
     x = int(position[0]/gridsize)
     y = int(position[1]/gridsize)
-    if x >= cells or y >= cells:
+    if x >= cells or y >= cells or x <= 0 or y <= 0:
         return
     value = maze[x,y] - 1
     maze[x,y] = max(-maxCellScore, min(value, maxCellScore))
@@ -37,7 +37,7 @@ def clear_space(position):
     # Increment cell score (More likely empty space), bounded
     x = int(position[0]/gridsize)
     y = int(position[1]/gridsize)
-    if x >= cells or y >= cells:
+    if x >= cells or y >= cells or x <= 0 or y <= 0:
         return
     value = maze[x,y] + 1
     maze[x,y] = max(-maxCellScore, min(value, maxCellScore))
@@ -49,7 +49,8 @@ wall_position = CoordinateRecorder(max_array_size, 2, wall_found)
 
 # Parse MQTT message into float
 def payload_to_number(msg):
-    return float(msg.decode('utf-8'))
+    if(msg != "b' NAN'"):
+        return float(msg.decode('utf-8'))
 
 # Callback for MQTT connection (debugging connection failed)
 def on_connect(client, userdata, flags, rc):
@@ -64,6 +65,14 @@ def on_message(client, userdata, msg):
             robot_position.update_y_coordinate(payload_to_number(msg.payload))
         case "team10/position/theta":
             robot_rotation.update_x_coordinate(payload_to_number(msg.payload))
+        case "team10/wall/x":
+            wall_position.update_x_coordinate(payload_to_number(msg.payload))
+        case "team10/wall/y":
+            wall_position.update_y_coordinate(payload_to_number(msg.payload))
+        case "team10/wall2/x":
+            wall_position.update_x_coordinate(payload_to_number(msg.payload))
+        case "team10/wall2/y":
+            wall_position.update_y_coordinate(payload_to_number(msg.payload))
         case "team10/ir/distance":
             pos = robot_position.most_recent()
             rot = robot_rotation.most_recent()
@@ -101,32 +110,39 @@ def init():
     client.subscribe("team10/position/x")
     client.subscribe("team10/position/y")
     client.subscribe("team10/position/theta")
-    client.subscribe("team10/ir/distance")
-    client.subscribe("team10/sonar/distance")
+    # client.subscribe("team10/wall/x")
+    # client.subscribe("team10/wall/y")
+    client.subscribe("team10/wall2/x")
+    client.subscribe("team10/wall2/y")
+    # client.subscribe("team10/ir/distance")
+    # client.subscribe("team10/sonar/distance")
     client.subscribe("team10/tag/x")
     client.subscribe("team10/tag/y")
     client.subscribe("team10/info/width")
+    client.subscribe("team10/reset")
+
 
 # Keep track of the plotted points
 def update(frame, robot, robotFront, walls, pickup, dropoff):
     heading = robot_rotation.most_recent()[0]
-    robo_x = robot_position.most_recent()[0]
-    robo_y = robot_position.most_recent()[1]
-    robo_front_xy = calculate_pos_from_offset(robo_x, robo_y, heading, gridsize / 10)
+    offset = cells / 2 * gridsize
+    robo_x = robot_position.most_recent()[0] + offset
+    robo_y = robot_position.most_recent()[1] + offset
+    robo_front_xy = calculate_pos_from_offset(robo_x, robo_y, heading, gridsize / 5)
 
     # Update the positions of all points
     robot.set_xdata(robo_x)
     robot.set_ydata(robo_y)
     robotFront.set_xdata(robo_front_xy[0])
     robotFront.set_ydata(robo_front_xy[1])
-    walls.set_xdata(wall_position.coordinates_array[:,0])
-    walls.set_ydata(wall_position.coordinates_array[:,1])
+    walls.set_xdata(wall_position.coordinates_array[:,0] + offset)
+    walls.set_ydata(wall_position.coordinates_array[:,1] + offset)
     if pickup_location is not None:
-        pickup.set_xdata(pickup_location[0])
-        pickup.set_ydata(pickup_location[1])
+        pickup.set_xdata(pickup_location[0] + offset)
+        pickup.set_ydata(pickup_location[1] + offset)
     if dropoff_location is not None:
-        dropoff.set_xdata(dropoff_location[0])
-        dropoff.set_ydata(dropoff_location[1])
+        dropoff.set_xdata(dropoff_location[0] + offset)
+        dropoff.set_ydata(dropoff_location[1] + offset)
 
 # Function to create and display the window
 def animate_points():
@@ -162,7 +178,7 @@ init()
 client.loop_start()
 start_time = time.time()
 
-gridsize = 42 # TODO known - remove to run init code
+gridsize = 42/2 # TODO known - remove to run init code
 while (gridsize is None):
     # Check the elapsed time
     elapsed_time = time.time() - start_time

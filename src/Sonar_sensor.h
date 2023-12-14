@@ -9,6 +9,8 @@ class SonarSensor{
         const int pin_ECHO = 12;
         const float SPEED_OF_SOUND = 340.0f; // m/s
         const float MICRO_TO_SECOND = 1000000.0f;
+        float dist[5];
+        int index = 0;
     public:
         void Init(void); 
         float ReadData(void); 
